@@ -51,6 +51,7 @@ const Spreadsheet: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`);
+        console.log(response)
         const data = JSON.parse(response.data.content); 
         
         console.log(data)

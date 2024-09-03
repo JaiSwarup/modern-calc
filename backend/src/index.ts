@@ -33,25 +33,48 @@ io.on('connection', (socket) => {
     console.log('Client disconnected');
   });
 });
-app.post('/auth', async (req, res) => {
+app.post('/auth/clerk', async (req, res) => {
   try {
-    const { userId } = req.body;
-    const user = await clerkClient.users.getUser(userId);
-    let existingUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-    });
-    
-    if (!existingUser) {
-      existingUser = await prisma.user.create({
+    // console.log(req.body)
+    console.log(req.body.data)
+    if (req.body.type === 'user.created'){
+      const { id, email_addresses } = req.body.data;
+      const user = await prisma.user.create({
         data: {
-          clerkId: user.id,
-          email: user.emailAddresses[0].emailAddress,
+          clerkId: id,
+          email: email_addresses[0].email_address,
         },
       });
+      res.status(200).json({ message: 'User authenticated', user });
+    } else if (req.body.type === 'user.updated'){
+      const { id, email_addresses } = req.body.data;
+      const user = await prisma.user.findFirst({
+        where: { clerkId: id },
+      })
+      if (!user){
+        return res.status(400).json({ message: 'User not found' });
+      }
+      await prisma.user.update({
+        where: { clerkId: id },
+        data: { email: email_addresses[0].email_address },
+      });
+      res.status(200).json({ message: 'User authenticated', user });
+    } else if (req.body.type === 'user.deleted'){
+      const { id } = req.body.data;
+      const user = await prisma.user.findFirst({
+        where: { clerkId: id },
+      })
+      if (!user){
+        return res.status(400).json({ message: 'User not found' });
+      } else {
+        await prisma.user.delete({
+          where: { clerkId: id },
+        });
+      }
+      res.status(200).json({ message: 'User deleted' });
     }
-
-    res.status(200).json({ message: 'User authenticated', user: existingUser });
   } catch (error: any) {
+    console.log("Error occured",error);
     res.status(400).json({ error: error.message });
   }
 });
