@@ -94,7 +94,7 @@ app.post('/worksheets', async (req, res) => {
     const workbook = await prisma.worksheet.create({
       data: {
         title,
-        content,
+        content : JSON.stringify([[]]),
         userId: user.id,
       },
     });
