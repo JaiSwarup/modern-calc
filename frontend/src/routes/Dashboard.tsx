@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import React from 'react'
 import { useClerk } from '@clerk/clerk-react'
-import {WorksheetWithUser} from 'C:\\Users\\jai swrup\\Desktop\\calc\\backend\\types.ts'
+import {WorksheetWithUser} from '../../../backend/types'
 
 export default function DashboardPage() {
   const clerk = useClerk()
@@ -30,7 +30,6 @@ export default function DashboardPage() {
       userId: user.id,
       email: user.primaryEmailAddress?.emailAddress,
       title: 'New Sheet',
-      content: 'New Sheet Content',
     }
     axios.post('http://localhost:3000/worksheets', data)
       .then(response => {

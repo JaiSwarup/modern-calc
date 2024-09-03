@@ -4,20 +4,15 @@ import http from 'http';
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
-import Clerk, { ClerkExpressRequireAuth, clerkClient} from '@clerk/clerk-sdk-node';
+import Clerk, { clerkClient } from '@clerk/clerk-sdk-node';
 
 dotenv.config();
 
-// const requireAuth = ClerkExpressRequireAuth();
 const prisma = new PrismaClient();
 const app = express();
 app.use(cors());
 app.use(express.json());
-// app.use(requireAuth);
-(async () => {
-  const userList = await clerkClient.users.getUserList();
-  console.log(userList);
-})();
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -26,95 +21,134 @@ const io = new Server(server, {
   }
 });
 
-
 io.on('connection', (socket) => {
-    console.log('New client connected');
-  
-    socket.on('update-cell', (data) => {
-        io.sockets.emit('update-cell', data);
-    });
-  
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});
+  console.log('New client connected');
 
+  socket.on('update-cell', (data) => {
+    // Emit the cell update to all connected clients except the sender
+    socket.broadcast.emit('updated-cell', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
 app.post('/auth', async (req, res) => {
   try {
-    const {userId, email} = req.body;
+    const { userId } = req.body;
     const user = await clerkClient.users.getUser(userId);
-    const existingUser = await prisma.user.findUnique({
+    let existingUser = await prisma.user.findUnique({
       where: { clerkId: user.id },
     });
+    
     if (!existingUser) {
-      await prisma.user.create({
+      existingUser = await prisma.user.create({
         data: {
           clerkId: user.id,
           email: user.emailAddresses[0].emailAddress,
         },
       });
     }
-    res.status(200).json({ message: 'User authenticated' });
-  }
-  catch (error:any) {
-    res.status(400).json(error?.message);
+
+    res.status(200).json({ message: 'User authenticated', user: existingUser });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });
 
-
 app.post('/worksheets', async (req, res) => {
-  const { userId,title, content } = req.body;
+  try {
+    const { userId, title, content } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId: String(userId) },
-  });
-  if (!user) {
-    return res.status(400).json({ message: 'User not found' });
+    const user = await prisma.user.findUnique({
+      where: { clerkId: String(userId) },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    const workbook = await prisma.worksheet.create({
+      data: {
+        title,
+        content,
+        userId: user.id,
+      },
+    });
+
+    res.status(201).json(workbook);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
-
-  const workbook = await prisma.worksheet.create({
-    data: {
-      title,
-      content,
-      userId: user.id,
-    },
-  });
-
-  res.status(201).json(workbook);
 });
 
 app.get('/worksheets', async (req, res) => {
-  const {userId, email} = req.query;
-  if (!userId) {
-    return res.status(400).json({ message: 'User not found' });
-  }
-  const user = await prisma.user.findUnique({
-    where: { clerkId: String(userId) },
-  });
-  if (!user) {
-    return res.status(400).json({ message: 'User not found' });
-  }
+  try {
+    const { userId } = req.query;
 
-  const workbooks = await prisma.worksheet.findMany({
-    where: { userId: user.id },
-  });
+    const user = await prisma.user.findUnique({
+      where: { clerkId: String(userId) },
+    });
 
-  res.status(200).json(workbooks);
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    const workbooks = await prisma.worksheet.findMany({
+      where: { userId: user.id },
+    });
+
+    res.status(200).json(workbooks);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.get('/worksheets/:id', async (req, res) => {
-  const { id } = req.params;
-  const workbook = await prisma.worksheet.findUnique({
-    where: { id: id },
-  });
-  if (!workbook) {
-    return res.status(404).json({ message: 'Workbook not found' });
+  try {
+    const { id } = req.params;
+    const workbook = await prisma.worksheet.findUnique({
+      where: { id },
+    });
+
+    if (!workbook) {
+      return res.status(404).json({ message: 'Workbook not found' });
+    }
+
+    res.status(200).json(workbook);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
-  res.status(200).json(workbook);
 });
 
-// Similar endpoints can be created for updating and deleting workbooks
+app.post('/worksheets/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = req.body;
 
+    const workbook = await prisma.worksheet.update({
+      where: { id },
+      data: { content: JSON.stringify(data) },
+    });
+
+    res.status(200).json(workbook);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+}
+);
+app.delete('/worksheets/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.worksheet.delete({
+      where: { id },
+    });
+
+    res.status(204).end();
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`app is runnning on localhost:${PORT}`));
+server.listen(PORT, () => console.log(`app is running on localhost:${PORT}`));

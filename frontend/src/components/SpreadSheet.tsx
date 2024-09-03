@@ -9,24 +9,11 @@ import axios from 'axios'
 
 export default function SpreadSheet() {
     const [read, setRead] = React.useState(false)
-    const params = useParams()
-    const sheetId = params.id
-    const data = axios.get(`http://localhost:3000/worksheets/${sheetId}`)
+
+
   return (
-    <div style={{height:"100vh"}}>
-        <button onClick={() => setRead(!read)}>toggle mode</button>
-        <Sheet
-        height="80%"
-        data={data}
-        options={
-          read && {
-            mode: "read",
-            showToolbar: false,
-            showGrid: false,
-            showContextmenu: false
-          }
-        }
-      />
+    <div>
+        <Sheet />
     </div>
   )
 }
