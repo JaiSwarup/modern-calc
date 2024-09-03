@@ -24,7 +24,7 @@ const TitleEditor: React.FC<TitleEditorProps> = ({sheetRef, sheetId, title, onRe
       onRename(sheetTitle);
       setEditingTitle(false);
     }
-    axios.post(`http://localhost:3000/worksheets/${sheetId}`, { title: sheetTitle, data: hot.getData(), changeTitle : true });
+    axios.post(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`, { title: sheetTitle, data: hot.getData(), changeTitle : true });
   };
 
   return (

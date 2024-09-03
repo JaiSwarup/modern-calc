@@ -11,7 +11,7 @@ import { ExportFile } from "handsontable/plugins";
 
 registerAllModules();
 
-const socket = io("http://localhost:3000");
+const socket = io(import.meta.env.VITE_SERVER_URL);
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
   licenseKey: 'internal-use-in-handsontable',
@@ -50,7 +50,7 @@ const Spreadsheet: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/worksheets/${sheetId}`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`);
         const data = JSON.parse(response.data.content); 
         
         console.log(data)
@@ -70,7 +70,7 @@ const Spreadsheet: React.FC = () => {
   const saveData = () => {
     const hot = sheetRef.current?.hotInstance;
     if (!hot) return;
-    axios.post(`http://localhost:3000/worksheets/${sheetId}`, { title : title, data: hot.getData(), changeTitle : false });
+    axios.post(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`, { title : title, data: hot.getData(), changeTitle : false });
   };
 
   const handleChanges = (changes: Handsontable.CellChange[] | null) => {
@@ -173,7 +173,7 @@ const Spreadsheet: React.FC = () => {
   };
 
   const handleDelete = () => {
-    axios.delete(`http://localhost:3000/worksheets/${sheetId}`);
+    axios.delete(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,7 +185,7 @@ const Spreadsheet: React.FC = () => {
     if (title.trim() !== "") {
       setEditingTitle(false);
     }
-    axios.post(`http://localhost:3000/worksheets/${sheetId}`, { title : title, data : "", changeTitle :true });
+    axios.post(`${import.meta.env.VITE_SERVER_URL}/worksheets/${sheetId}`, { title : title, data : "", changeTitle :true });
   };
 
   return (
