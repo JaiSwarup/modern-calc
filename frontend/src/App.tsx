@@ -8,6 +8,7 @@ import DashboardPage from './routes/Dashboard'
 import SignInPage from './routes/Sign-in'
 import SignUpPage from './routes/Sign-up'
 import SpreadSheet from './components/Sheet'
+import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react'
 // import NotFoundPage from './routes/NotFound'
 
 const router = createBrowserRouter([
@@ -22,13 +23,31 @@ const router = createBrowserRouter([
         // element: <DashboardLayout />,
         path: 'dashboard',
         children: [
-          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/dashboard', element: (
+            <>
+            <SignedIn>
+              <DashboardPage />
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          </>
+          ) },
           // { path: '/dashboard/invoices', element: <InvoicesPage /> },
         ],
       },
       {path: '/sheet', element: <SpreadSheet />,
       children:[{
-        path: '/sheet/:id', element: <SpreadSheet />
+        path: '/sheet/:id', element: (
+          <>
+          <SignedIn>
+            <SpreadSheet />
+          </SignedIn>
+          <SignedOut>
+            <RedirectToSignIn />
+          </SignedOut>
+          </>
+      )
       }]
         }
     ],

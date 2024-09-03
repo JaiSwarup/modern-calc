@@ -16,6 +16,9 @@ export default function IndexPage() {
           <li>
             <Link to="/sign-in">Sign In</Link>
           </li>
+          <li>
+            <Link to="/sheet">Demo</Link>
+          </li>
           </SignedOut>
           <SignedIn>
           <li>

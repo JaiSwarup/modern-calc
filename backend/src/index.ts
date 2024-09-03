@@ -124,14 +124,23 @@ app.get('/worksheets/:id', async (req, res) => {
 app.post('/worksheets/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { data } = req.body;
+    const { title, data, changeTitle } = req.body;
 
-    const workbook = await prisma.worksheet.update({
-      where: { id },
-      data: { content: JSON.stringify(data) },
-    });
+    if (changeTitle){
+      await prisma.worksheet.update({
+        where: { id },
+        data: { title },
+      });
 
-    res.status(200).json(workbook);
+    } else {
+      await prisma.worksheet.update({
+        where: { id },
+        data: { content: JSON.stringify(data) },
+      });
+    }
+
+
+    res.status(200).json("Success");
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

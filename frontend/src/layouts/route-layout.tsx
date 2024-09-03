@@ -23,22 +23,6 @@ export default function RootLayout() {
           </div>
           <SignedIn>
             <UserButton />
-            {/* <div style={{ height: "100vh" }}>
-      <button onClick={() => setRead(!read)}>toggle mode</button> */}
-      {/* <Sheet
-        height="80%"
-        data={exampleData}
-        options={
-          read && {
-            mode: "read",
-            showToolbar: false,
-            showGrid: false,
-            showContextmenu: false
-          }
-        }
-      /> */}
-      {/* <br />
-    </div> */}
           </SignedIn>
           <SignedOut>
             <Link to="/sign-in">Sign In</Link>
