@@ -50,7 +50,7 @@ const Spreadsheet: React.FC = () => {
   const handleChanges = (changes: Handsontable.CellChange[] | null) => {
     if (!changes) return;
 
-    changes.forEach(([row, col, oldValue, newValue]) => {
+    changes.forEach(([row, col, , newValue]) => {
       socket.emit("update-cell", { row, col, value: newValue });
     });
   };

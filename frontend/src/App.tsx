@@ -7,7 +7,7 @@ import DashboardPage from './routes/Dashboard'
 // import ContactPage from './routes/Contact'
 import SignInPage from './routes/Sign-in'
 import SignUpPage from './routes/Sign-up'
-import SpreadSheet from './components/SpreadSheet'
+import SpreadSheet from './components/Sheet'
 // import NotFoundPage from './routes/NotFound'
 
 const router = createBrowserRouter([
