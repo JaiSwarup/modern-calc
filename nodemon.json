@@ -1,0 +1,12 @@
+{
+    "ignore": [
+      ".git",
+      "node_modules/**/node_modules",
+      ".next/**"
+    ],
+    "watch": [
+      "src/**/*.{ts}x",
+      "server.ts"
+    ],
+    "exec": "tsc -p tsconfig.server.json && node dist/server.js"
+  }

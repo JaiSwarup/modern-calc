@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId        String    @unique
+  name           String
+  email          String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  workbooks      Workbook[]
+
+  allowedWorkbookIds String[] @db.ObjectId
+  allowedWorkbooks Workbook[] @relation("AllowedWorkbooks", fields: [allowedWorkbookIds], references: [id])
+}
+
+model Workbook {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @default("Untitled Workbook")
+
+  worksheetIds String[] @db.ObjectId
+  worksheets Worksheet[]
+
+  authorId String @db.ObjectId
+  author   User @relation(fields: [authorId], references: [id])
+
+  isPublic Boolean @default(false)
+
+  allowedUserIds String[] @db.ObjectId
+  allowedUsers User[] @relation("AllowedWorkbooks", fields: [allowedUserIds], references: [id])
+}
+
+
+model Worksheet {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name                        String @default("Sheet1")
+  color                       String? @default("")
+  status                      Int @default(1)
+  order                       Int @default(0)
+  row                         Int @default(36)
+  column                      Int @default(18)
+  defaultRowHeight            Int @default(19)
+  defaultColWidth             Int @default(73)
+  celldata                    Json[] @default(["{\"r\":0,\"c\":0, \"v\":{\"m\":\"Let's Start here!\",\"v\":\"Let's start here!\",\"ct\": {\"fa\": \"General\", \"t\": \"g\"}} }"])
+  config                      Json @default("{}")
+  // luckysheet_select_save      Json?
+  // calcChain                   Json?
+  isPivotTable                Boolean @default(false)
+  // pivotTable                  Json?
+  // filter                      Json?
+  // luckysheet_alternateformat_save       Json[] @default(["{}"])
+  // luckysheet_alternateformat_save_modelCustom Json?
+  // luckysheet_conditionformat_save Json[] @default(["{}"])
+  // frozen                      Json?
+  zoomRatio                   Int @default(1)
+  showGridLines               Int @default(1)
+
+  workbookId String @db.ObjectId
+  workbook   Workbook @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+}
+
